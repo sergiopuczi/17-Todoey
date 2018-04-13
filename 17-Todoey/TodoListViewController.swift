@@ -18,7 +18,10 @@ class TodoListViewController: UITableViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
+        //if Persistend Data Local Storage is not empty
         if let item = defaults.array(forKey: "TodoListArray") as? [String] {
+            
+            //itemArray contains the data of Persistend Data Local Storage (TodoListArray)
             itemArray = item
         }
     }
