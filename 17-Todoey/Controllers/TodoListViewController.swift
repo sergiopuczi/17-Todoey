@@ -10,32 +10,20 @@ import UIKit
 
 class TodoListViewController: UITableViewController {
     
-    let defaults = UserDefaults.standard
-
     var itemArray = [Item]()
+    
+    //Creating the Item.plist file to save data on Persistent Storage
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let newItem = Item()
-        newItem.title = "Milk"
-        itemArray.append(newItem)
+        print(dataFilePath!)
         
-        let newItem2 = Item()
-        newItem2.title = "Bread"
-        itemArray.append(newItem2)
+        //Loading data from our Item.plist
+        loadItems()
         
-        let newItem3 = Item()
-        newItem3.title = "Sugar"
-        itemArray.append(newItem3)
-        
-        //if Persistent Data Local Storage is not empty
-        if let item = defaults.array(forKey: "TodoListArray") as? [Item] {
-
-            //itemArray contains the data of Persistent Data Local Storage (TodoListArray)
-            itemArray = item
-        }
     }
 
     //MARK: - Tableview Datasource Methods
@@ -52,7 +40,7 @@ class TodoListViewController: UITableViewController {
 //        else {
 //            cell.accessoryType = .none
 //        }
-        //Shorter form: value = condition ? valueIfTrue : valueIfFalse
+//      Shorter form: value = condition ? valueIfTrue : valueIfFalse
         cell.accessoryType = item.done ? .checkmark : .none
 
         
@@ -73,8 +61,7 @@ class TodoListViewController: UITableViewController {
         //sets the "done" property to it's opposite
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
-        //call Tableview Datasource Methods again
-        tableView.reloadData()
+        saveItems()
         
     }
     
@@ -91,10 +78,8 @@ class TodoListViewController: UITableViewController {
 
             self.itemArray.append(newItem)
             
-            //save data on "TodoListArray" Persistent Data Local Storage
-            self.defaults.set(self.itemArray, forKey: "TodoListArray")
+            self.saveItems()
             
-            self.tableView.reloadData()
         }
         
         alert.addTextField { (alertTextField) in
@@ -107,6 +92,38 @@ class TodoListViewController: UITableViewController {
         
     }
     
+    
+    //MARK: - Model Manipulation Methods
+    
+    //Saving data on our Item.plist
+    func saveItems() {
+        let encoder = PropertyListEncoder()
+        
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        }
+        catch {
+            print("Error encoding: \(error)")
+        }
+        
+        //call Tableview Datasource Methods again
+        tableView.reloadData()
+    }
+    
+    //Loading data from our Item.plist
+    func loadItems() {
+        if let data = try? Data.init(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            
+            do {
+                itemArray = try decoder.decode([Item].self, from: data)
+            }
+            catch {
+                print("Error decoding: \(error)")
+            }
+        }
+    }
     
     
 
